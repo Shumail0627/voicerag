@@ -229,38 +229,25 @@ async def process_query(
         st.write(f"Generated voice instructions of length: {len(voice_instructions)}")
         
         st.info("🔄 Step 6: Generating and playing audio...")
-        # Generate and play audio with streaming
+        # Generate and save audio as MP3 for download and browser playback
         async_openai = AsyncOpenAI(api_key=OPENAI_API_KEY)
         
-        # First create streaming response
-        async with async_openai.audio.speech.with_streaming_response.create(
+        st.write("Generating downloadable MP3 version...")
+        # Save as MP3 for download and browser playback
+        audio_response = await async_openai.audio.speech.create(
             model="gpt-4o-mini-tts",
             voice=voice,
             input=text_response,
             instructions=voice_instructions,
-            response_format="pcm",
-        ) as stream_response:
-            st.write("Starting audio playback...")
-            # Play audio directly using LocalAudioPlayer
-            await LocalAudioPlayer().play(stream_response)
-            st.write("Audio playback complete")
-            
-            st.write("Generating downloadable MP3 version...")
-            # Also save as MP3 for download
-            audio_response = await async_openai.audio.speech.create(
-                model="gpt-4o-mini-tts",
-                voice=voice,
-                input=text_response,
-                instructions=voice_instructions,
-                response_format="mp3"
-            )
-            
-            temp_dir = tempfile.gettempdir()
-            audio_path = os.path.join(temp_dir, f"response_{uuid.uuid4()}.mp3")
-            
-            with open(audio_path, "wb") as f:
-                f.write(audio_response.content)
-            st.write(f"Saved MP3 file to: {audio_path}")
+            response_format="mp3"
+        )
+        
+        temp_dir = tempfile.gettempdir()
+        audio_path = os.path.join(temp_dir, f"response_{uuid.uuid4()}.mp3")
+        
+        with open(audio_path, "wb") as f:
+            f.write(audio_response.content)
+        st.write(f"Saved MP3 file to: {audio_path}")
         
         st.success("✅ Query processing complete!")
         return {
