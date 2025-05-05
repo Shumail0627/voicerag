@@ -7,3 +7,5 @@ langchain-community
 langchain-openai
 openai
 pypdf
+sounddevice
+openai[voice_helpers]
